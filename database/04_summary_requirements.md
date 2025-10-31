@@ -18,7 +18,7 @@
 
 - ✅ Máximo 5 pasajeros por compra (constraint en tabla `reservas`)
 - ✅ Todos los datos requeridos:
-  - ✅ Primer apellido
+  - ✅ Primer apellido 
   - ✅ Segundo apellido
   - ✅ Nombres
   - ✅ Fecha de nacimiento

@@ -14,10 +14,10 @@ SELECT
     (SELECT id FROM modelos_avion WHERE nombre = 'Airbus A320' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Bogotá' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Medellín' LIMIT 1),
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '6 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '7 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '6 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '7 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
     280000.00,
     'disponible'
 FROM generate_series(1, 30)
@@ -31,10 +31,10 @@ SELECT
     (SELECT id FROM modelos_avion WHERE nombre = 'Boeing 737' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Medellín' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Bogotá' LIMIT 1),
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '8 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '9 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '8 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '9 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
     290000.00,
     'disponible'
 FROM generate_series(1, 30)
@@ -48,10 +48,10 @@ SELECT
     (SELECT id FROM modelos_avion WHERE nombre = 'Embraer E190' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Bogotá' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Cali' LIMIT 1),
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '10 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '11 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '10 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '11 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
     320000.00,
     'disponible'
 FROM generate_series(1, 25)
@@ -65,10 +65,10 @@ SELECT
     (SELECT id FROM modelos_avion WHERE nombre = 'Airbus A320' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Bogotá' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Cartagena' LIMIT 1),
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '7 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '8 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '7 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '8 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
     350000.00,
     'disponible'
 FROM generate_series(1, 25)
@@ -82,10 +82,10 @@ SELECT
     (SELECT id FROM modelos_avion WHERE nombre = 'Boeing 787 Dreamliner' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Bogotá' LIMIT 1),
     (SELECT id FROM ciudades WHERE nombre = 'Miami' LIMIT 1),
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '6 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
-    CURRENT_DATE + (ROW_NUMBER() OVER () % 60),
-    (INTERVAL '10 hours' + (ROW_NUMBER() OVER () || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '6 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
+    CURRENT_DATE + (ROW_NUMBER() OVER () % 60)::INTEGER,
+    (INTERVAL '10 hours' + ((ROW_NUMBER() OVER () % 24)::INTEGER || ' hours')::INTERVAL)::TIME,
     850000.00,
     'disponible'
 FROM generate_series(1, 20)
@@ -143,9 +143,8 @@ DECLARE
     vuelo_record RECORD;
     capacidad INTEGER;
     i INTEGER;
-    numero_asiento TEXT;
-    tipo_asiento TEXT;
-    asientos_count INTEGER;
+    num_asiento TEXT;
+    tipo_asiento_var TEXT;
 BEGIN
     FOR vuelo_record IN 
         SELECT v.id, v.modelo_avion_id, ma.capacidad_total
@@ -158,19 +157,19 @@ BEGIN
         capacidad := vuelo_record.capacidad_total;
         
         FOR i IN 1..capacidad LOOP
-            numero_asiento := ((i - 1) / 6 + 1)::TEXT || 
+            num_asiento := ((i - 1) / 6 + 1)::TEXT || 
                              CHR(65 + ((i - 1) % 6));
             
             IF i <= (capacidad * 0.05) THEN
-                tipo_asiento := 'primera_clase';
+                tipo_asiento_var := 'primera_clase';
             ELSIF i <= (capacidad * 0.25) THEN
-                tipo_asiento := 'ejecutiva';
+                tipo_asiento_var := 'ejecutiva';
             ELSE
-                tipo_asiento := 'economica';
+                tipo_asiento_var := 'economica';
             END IF;
             
             INSERT INTO asientos (vuelo_id, numero_asiento, estado, tipo_asiento)
-            VALUES (vuelo_record.id, numero_asiento, 'disponible', tipo_asiento)
+            VALUES (vuelo_record.id, num_asiento, 'disponible', tipo_asiento_var)
             ON CONFLICT (vuelo_id, numero_asiento) DO NOTHING;
         END LOOP;
     END LOOP;
